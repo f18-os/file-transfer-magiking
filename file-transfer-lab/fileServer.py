@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, re, socket
+import sys, re, socket, os
 sys.path.append("../lib")       # for params
 import params
 from framedSock import framedSend, framedReceive
@@ -31,14 +31,32 @@ sock, addr = lsock.accept()
 
 print("connection rec'd from", addr)
 
-fname = server_files_dir + '/' + "temp"
-with open(fname, 'w') as f:
-    while True:
-        payload = framedReceive(sock, debug)
-        if debug: print("fileServer rec'd: ", payload)
-        if not payload:
-            print("empty payload")
-            break
-        f.write(payload.decode())
+
+def recv_file_name():
+    global server_files_dir
+    payload = framedReceive(sock, debug)
+    fname = server_files_dir + '/' + payload.decode()
+    if os.path.exists(fname):
+        framedSend(sock, b"file already exists")
+        exit()
+    else:
+        framedSend(sock, b"OK")
+        return payload.decode()
+    return None
+
+
+def recv_file(filename):
+    global server_files_dir
+    fname = server_files_dir + '/' + filename
+    with open(fname, 'w') as f:
+        while True:
+            payload = framedReceive(sock, debug)
+            if debug: print("fileServer rec'd: ", payload)
+            if not payload:
+                print("empty payload")
+                break
+            f.write(payload.decode())
     
 
+fname = recv_file_name()
+recv_file(fname)

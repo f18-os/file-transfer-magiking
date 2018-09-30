@@ -75,6 +75,14 @@ def send_file(fname, s, debug):
             chunk = f.readline()
 
 
+def check_filename(s, fname, debug):
+    framedSend(s, fname.encode(), debug) 
+    answer = framedReceive(s, debug)
+    if not (answer == b"OK"):
+        print(answer.decode())
+        exit()
+
+
 def main():
     progname = "fileClient"
     paramMap = params.parseParams(switchesVarDefaults)
@@ -91,6 +99,7 @@ def main():
         sys.exit(1)
 
     fname = get_filename()
+    check_filename(s, fname, debug)
     send_file(fname, s, debug)
     s.close()
 
