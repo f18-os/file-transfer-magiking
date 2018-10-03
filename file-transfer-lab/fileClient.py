@@ -63,7 +63,7 @@ def get_filename():
 
 
 def send_file(fname, s, debug):
-    ''' Read file and use framedSend to send to server. '''
+    ''' Read file in chunks and use framedSend to send to server. '''
     global client_file_dir
     with open(client_file_dir + '/' + fname, 'r') as f:
         chunk = f.readline()
@@ -75,7 +75,7 @@ def send_file(fname, s, debug):
             chunk = f.readline()
 
 
-def check_filename(s, fname, debug):
+def send_filename(s, fname, debug):
     framedSend(s, fname.encode(), debug) 
     answer = framedReceive(s, debug)
     if not (answer == b"OK"):
@@ -99,7 +99,7 @@ def main():
         sys.exit(1)
 
     fname = get_filename()
-    check_filename(s, fname, debug)
+    send_filename(s, fname, debug)
     send_file(fname, s, debug)
     s.close()
 
