@@ -14,25 +14,9 @@ switchesVarDefaults = (
     )
 
 progname = "fileServer"
-paramMap = params.parseParams(switchesVarDefaults)
-
-debug, listenPort = paramMap['debug'], paramMap['listenPort']
-
-if paramMap['usage']:
-    params.usage()
-
-lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # listener socket
-bindAddr = ("127.0.0.1", listenPort)
-lsock.bind(bindAddr)
-lsock.listen(5)
-print("listening on:", bindAddr)
-
-sock, addr = lsock.accept()
-
-print("connection rec'd from", addr)
-
 
 def recv_file_name():
+    ''' Get file name from client and check if exists.'''
     global server_files_dir
     payload = framedReceive(sock, debug)
     fname = server_files_dir + '/' + payload.decode()
@@ -46,6 +30,7 @@ def recv_file_name():
 
 
 def recv_file(filename):
+    ''' Receive file from client and write to server_files_dir/filename. '''
     global server_files_dir
     fname = server_files_dir + '/' + filename
     with open(fname, 'w') as f:
@@ -58,5 +43,25 @@ def recv_file(filename):
             f.write(payload.decode())
     
 
-fname = recv_file_name()
-recv_file(fname)
+### Stuff starts happening
+paramMap = params.parseParams(switchesVarDefaults)
+
+debug, listenPort = paramMap['debug'], paramMap['listenPort']
+
+if paramMap['usage']:
+    params.usage()
+
+lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # listener socket
+bindAddr = ("127.0.0.1", listenPort)
+lsock.bind(bindAddr)
+lsock.listen(5)
+print("listening on:", bindAddr)
+
+
+while True:
+    sock, addr = lsock.accept()
+
+    if not os.fork():
+        print("new child process handling connection from", addr)
+        fname = recv_file_name()
+        recv_file(fname)
