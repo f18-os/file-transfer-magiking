@@ -5,10 +5,9 @@ sys.path.append("../lib")       # for params
 import params
 from framedSock import framedSend, framedReceive
 
-server_files_dir = "./server_files"
-
 switchesVarDefaults = (
     (('-l', '--listenPort') ,'listenPort', 50001),
+    (('-f', '--folder'), "folder",  "./server_files"), # default directory to look for files
     (('-d', '--debug'), "debug", False), # boolean (set if present)
     (('-?', '--usage'), "usage", False), # boolean (set if present)
     )
@@ -17,11 +16,12 @@ progname = "fileServer"
 
 def recv_file_name():
     ''' Get file name from client and check if exists.'''
-    global server_files_dir
+    global folder
     payload = framedReceive(sock, debug)
-    fname = server_files_dir + '/' + payload.decode()
+    fname = folder + '/' + payload.decode()
     if os.path.exists(fname):
         framedSend(sock, b"file already exists")
+        print("file already exists, terminating")
         exit()
     else:
         framedSend(sock, b"OK")
@@ -30,9 +30,9 @@ def recv_file_name():
 
 
 def recv_file(filename):
-    ''' Receive file from client and write to server_files_dir/filename. '''
-    global server_files_dir
-    fname = server_files_dir + '/' + filename
+    ''' Receive file from client and write to folder/filename. '''
+    global folder
+    fname = folder + '/' + filename
     with open(fname, 'w') as f:
         while True:
             payload = framedReceive(sock, debug)
@@ -46,7 +46,7 @@ def recv_file(filename):
 ### Stuff starts happening
 paramMap = params.parseParams(switchesVarDefaults)
 
-debug, listenPort = paramMap['debug'], paramMap['listenPort']
+debug, listenPort, folder = paramMap['debug'], paramMap['listenPort'], paramMap['folder']
 
 if paramMap['usage']:
     params.usage()
@@ -65,3 +65,5 @@ while True:
         print("new child process handling connection from", addr)
         fname = recv_file_name()
         recv_file(fname)
+        print("child finished handling connection from", addr)
+        exit()

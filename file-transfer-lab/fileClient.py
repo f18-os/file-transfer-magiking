@@ -7,12 +7,11 @@ import params
 
 from framedSock import framedSend, framedReceive
 
-client_file_dir = "./client_files"
-
 prompt = 'file to send> '
 
 switchesVarDefaults = (
     (('-s', '--server'), 'server', "127.0.0.1:50001"),
+    (('-f', '--folder'), "folder",  "./client_files"), # default directory to look for files
     (('-d', '--debug'), "debug", False), # boolean (set if present)
     (('-?', '--usage'), "usage", False), # boolean (set if present)
     )
@@ -49,23 +48,21 @@ def get_socket(server):
     return s
 
 
-def get_filename():
+def get_filename(folder):
     ''' Get name of file to be sent. '''
-    global client_file_dir
     # get the commands
     global prompt
     input_fname = input(prompt)
     input_fname = str.strip(input_fname)
-    if not os.path.exists(client_file_dir + '/' + input_fname):
+    if not os.path.exists(folder + '/' + input_fname):
         print("%s does not exist. Try again." % input_fname)
-        return get_filename()
+        return get_filename(folder)
     return input_fname
 
 
-def send_file(fname, s, debug):
+def send_file(fname, s, folder, debug):
     ''' Read file in chunks and use framedSend to send to server. '''
-    global client_file_dir
-    with open(client_file_dir + '/' + fname, 'r') as f:
+    with open(folder + '/' + fname, 'r') as f:
         chunk = f.readline()
         while chunk:
             if debug: print("Next chunk:\n%s\n" % chunk)
@@ -88,6 +85,7 @@ def main():
     paramMap = params.parseParams(switchesVarDefaults)
 
     server, usage, debug  = paramMap["server"], paramMap["usage"], paramMap["debug"]
+    folder = paramMap["folder"]
 
     if usage:
         params.usage()
@@ -98,9 +96,9 @@ def main():
         print('could not open socket')
         sys.exit(1)
 
-    fname = get_filename()
+    fname = get_filename(folder)
     send_filename(s, fname, debug)
-    send_file(fname, s, debug)
+    send_file(fname, s, folder, debug)
     s.close()
 
 
