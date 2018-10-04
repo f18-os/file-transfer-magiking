@@ -63,13 +63,13 @@ def get_filename(folder):
 def send_file(fname, s, folder, debug):
     ''' Read file in chunks and use framedSend to send to server. '''
     with open(folder + '/' + fname, 'r') as f:
-        chunk = f.readline()
+        chunk = f.read(100)
         while chunk:
             if debug: print("Next chunk:\n%s\n" % chunk)
             framedSend(s, chunk.encode(), debug)
             # print("waiting for ack of framed send")
             # print(framedReceive(s, debug)) # wait for ack?
-            chunk = f.readline()
+            chunk = f.read(100)
 
 
 def send_filename(s, fname, debug):
