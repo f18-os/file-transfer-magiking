@@ -14,6 +14,14 @@ This isn't great because it clogs the namespace of files.
 Also, the server will not write a file
 if it already has one by the same name.
 
+I had to add a flag to the regex in framedSock.py for the framedReceive() method.
+The `.` special char doesn't read newlines by default,
+and this totally throws off the function.
+The `rbuf` won't actually fill up with the whole message,
+and once the next recv(100) is called, the length of the next message is
+put into the payload of the first.
+The `re.DOTALL` fixes that by allowing the `.*` portion of the regex to read through newlines.
+
 ## File Client
 
 Client defaults
