@@ -29,7 +29,6 @@ def framedReceive(sock, debug=0):
              if len(rbuf) >= msgLength:
                  payload = rbuf[0:msgLength]
                  rbuf = rbuf[msgLength:]
-                 print("FramedReceive: returning payload")
                  return payload
          r = sock.recv(100)
          rbuf += r
